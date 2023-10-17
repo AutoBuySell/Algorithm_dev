@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import os
 
-PATH_MARKET_DATA = '../data/market_long_data/'
+PATH_MARKET_LONG_DATA = '../data/market_long_data/'
 PATH_SETTING_DATA = '../data/setting_data/'
 PATH_DEFAULT_SETTING = '../data/setting_data/default_settings.json'
 
@@ -23,12 +23,16 @@ class Equity_Manual_v1():
     def __init__(
         self,
         symbol: str,
+        timeframe: str,
     ) -> None:
         self.symbol = symbol
+        self.timeframe = timeframe
         self.data = None
         self.start_point = 0
+        self.buy_power = 10000
+        self.current_position = 0
 
-        self.data_path = PATH_MARKET_DATA + self.symbol + '.csv'
+        self.data_path = PATH_MARKET_LONG_DATA + self.symbol + '_' + self.timeframe + '.csv'
 
         if os.path.isfile(PATH_SETTING_DATA + self.symbol + '_settings.json'):
             with open(PATH_SETTING_DATA + self.symbol + '_settings.json', 'r') as fp:
