@@ -1,27 +1,37 @@
-def makeOrders_Manual_v1(asset, side, currentPrice):
+import traceback
+
+from .assets import Equity_Manual_v1
+
+def makeOrders_Manual_v1(asset: Equity_Manual_v1, side: str, currentPrice: float) -> tuple[bool | int]:
   '''
   orders: (list of symbols to order, list of 'buy' or 'sell' orders per asset)
   obj_assets: dict of asset objects
   '''
 
-  isOrder = False
+  try:
+    isOrder = False
+    qty = 0
 
-  symbol = asset.symbol
+    symbol = asset.symbol
 
-  buy_power = asset.buy_power
-  current_position = asset.current_position
+    buy_power = asset.buy_power
+    current_position = asset.current_position
 
-  if side == 'sell' and current_position > 0:
-    qty = int(current_position / 3) if current_position >= 3 else current_position
-    if qty > 0:
-      isOrder = True
+    if side == 'sell' and current_position > 0:
+      qty = int(current_position / 3) if current_position >= 3 else current_position
+      if qty > 0:
+        isOrder = True
 
-    # print('sell: ', symbol, ', qty: ', qty, ', price: ', price)
-  elif side == 'buy' and buy_power > 0:
-    qty = int(buy_power / 3 / currentPrice)
-    if qty > 0:
-      isOrder = True
+      # print('sell: ', symbol, ', qty: ', qty, ', price: ', currentPrice)
 
-    # print('buy: ', symbol, ', qty: ', qty, ', price: ', price)
+    elif side == 'buy' and buy_power > 0:
+      qty = int(buy_power / 3 / currentPrice)
+      if qty > 0:
+        isOrder = True
 
-  return isOrder, qty
+      # print('buy: ', symbol, ', qty: ', qty, ', price: ', currentPrice)
+
+    return isOrder, qty
+
+  except:
+    print(traceback.format_exc())

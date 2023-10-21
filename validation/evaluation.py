@@ -8,7 +8,7 @@ from validation.visualization import visualize_points
 
 SYMBOLS_FOR_EVALUATION = ['TSLA', 'AAPL', 'META', 'NVDA', 'NFLX', 'ROKU', 'NKLA']
 
-def trading_point_evaluation(startDate: str, endDate: str, timeframe: str = '30Min'):
+def trading_point_evaluation(startDate: str, endDate: str):
   '''
   매수/매도 포인트 시각화
   visualize buying/selling points
@@ -19,20 +19,20 @@ def trading_point_evaluation(startDate: str, endDate: str, timeframe: str = '30M
   selected_points: points selected by human
   '''
 
-  req_data_historical(
-    symbols=SYMBOLS_FOR_EVALUATION,
-    timeframe=timeframe,
-    startDate=startDate,
-    endDate=endDate
-  )
-
   results = {}
 
   checked_selected_points = {}
   predicted_points = {}
 
   for symbol in SYMBOLS_FOR_EVALUATION:
-    asset = ASSETCLASS(symbol, timeframe)
+    asset = ASSETCLASS(symbol)
+
+    req_data_historical(
+      symbol=symbol,
+      timeframe=asset.timeframe,
+      startDate=startDate,
+      endDate=endDate
+    )
 
     checked_selected_points[symbol] = set([])
     predicted_points[symbol] = []
@@ -65,7 +65,7 @@ def trading_point_evaluation(startDate: str, endDate: str, timeframe: str = '30M
 
   return results
 
-def trading_margin_evaluation(startDate: str, endDate: str, timeframe: str = '30Min'):
+def trading_margin_evaluation(startDate: str, endDate: str, initial_buy_power: float):
   '''
   매수/매도 포인트 시각화
   visualize buying/selling points
@@ -74,18 +74,20 @@ def trading_margin_evaluation(startDate: str, endDate: str, timeframe: str = '30
   return: A dict of keys of symbols and values of (estimated margins, current_buy_power, current_position_value)
   '''
 
-  req_data_historical(
-    symbols=SYMBOLS_FOR_EVALUATION,
-    timeframe=timeframe,
-    startDate=startDate,
-    endDate=endDate
-  )
-
   predicted_points = {}
   estimated_margins = {}
 
   for symbol in SYMBOLS_FOR_EVALUATION:
-    asset = ASSETCLASS(symbol, timeframe)
+    asset = ASSETCLASS(symbol)
+    asset.buy_power = initial_buy_power
+
+    req_data_historical(
+      symbol=symbol,
+      timeframe=asset.timeframe,
+      startDate=startDate,
+      endDate=endDate
+    )
+
     estimated_margins[symbol] = (asset.buy_power, 0, 0)
 
     ordered = set([])
@@ -99,15 +101,15 @@ def trading_margin_evaluation(startDate: str, endDate: str, timeframe: str = '30
       if buySig:
         isOrder, qty = ORDERFUNC(asset=asset, side='buy', currentPrice=currentPrice)
         if isOrder:
-          asset.buy_power += qty * currentPrice
-          asset.current_position -= qty
+          asset.buy_power -= qty * currentPrice
+          asset.current_position += qty
           ordered.add(i)
         predicted_points[symbol].append(('buy', i, currentPrice))
       elif sellSig:
         isOrder, qty = ORDERFUNC(asset=asset, side='sell', currentPrice=currentPrice)
         if isOrder:
-          asset.buy_power -= qty * currentPrice
-          asset.current_position += qty
+          asset.buy_power += qty * currentPrice
+          asset.current_position -= qty
           ordered.add(i)
         predicted_points[symbol].append(('sell', i, currentPrice))
 
