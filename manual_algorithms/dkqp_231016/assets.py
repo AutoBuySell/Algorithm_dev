@@ -1,11 +1,13 @@
 import pandas as pd
-
 import json
 import os
+from dotenv import load_dotenv
 
-PATH_MARKET_LONG_DATA = '../data/market_long_data/'
-PATH_SETTING_DATA = '../data/setting_data/'
-PATH_DEFAULT_SETTING = '../data/setting_data/default_settings.json'
+load_dotenv(verbose=True)
+
+PATH_MARKET_DATA = os.getenv('PATH_MARKET_DATA')
+PATH_SETTING_DATA = os.getenv('PATH_SETTING_DATA')
+PATH_DEFAULT_SETTING = os.getenv('PATH_DEFAULT_SETTING')
 
 class Equity_Manual_v1():
     '''
@@ -32,7 +34,7 @@ class Equity_Manual_v1():
         self.buy_power = 10000
         self.current_position = 0
 
-        self.data_path = PATH_MARKET_LONG_DATA + self.symbol + '_' + self.timeframe + '.csv'
+        self.data_path = PATH_MARKET_DATA + self.symbol + '_' + self.timeframe + '.csv'
 
         if os.path.isfile(PATH_SETTING_DATA + self.symbol + '_settings.json'):
             with open(PATH_SETTING_DATA + self.symbol + '_settings.json', 'r') as fp:
@@ -40,7 +42,7 @@ class Equity_Manual_v1():
         else:
             print('[Warning]', self.symbol, 'has no setting files. The default settings will be used instead.')
             with open(PATH_DEFAULT_SETTING, 'r') as fp:
-                self.settings = json.load(fp)
+                self.settings = json.load(fp)['default']
             self.set()
 
         self.load_data() # Initialize self.data

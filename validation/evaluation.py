@@ -1,6 +1,6 @@
-from manual_algorithms.dkqp_231016.assets import Equity_Manual_v1
-from manual_algorithms.dkqp_231016.judge import getNewPosition_Manual_v1
-from manual_algorithms.dkqp_231016.order import makeOrders_Manual_v1
+from manual_algorithms.dkqp_231016.assets import Equity_Manual_v1 as ASSETCLASS
+from manual_algorithms.dkqp_231016.judge import getNewPosition_Manual_v1 as JUDGEFUNC
+from manual_algorithms.dkqp_231016.order import makeOrders_Manual_v1 as ORDERFUNC
 
 from apis.data import req_data_historical
 
@@ -32,7 +32,7 @@ def trading_point_evaluation(startDate: str, endDate: str, timeframe: str = '30M
   predicted_points = {}
 
   for symbol in SYMBOLS_FOR_EVALUATION:
-    asset = Equity_Manual_v1(symbol, timeframe)
+    asset = ASSETCLASS(symbol, timeframe)
 
     checked_selected_points[symbol] = set([])
     predicted_points[symbol] = []
@@ -41,7 +41,7 @@ def trading_point_evaluation(startDate: str, endDate: str, timeframe: str = '30M
 
     judges = asset.data['judge']
     for i in data.index:
-      buySig, sellSig = getNewPosition_Manual_v1(asset, i)
+      buySig, sellSig = JUDGEFUNC(asset, i)
       if buySig:
         for j in range(i - 2, i + 3):
           if j not in checked_selected_points[symbol] and judges[j] == 1:
@@ -85,7 +85,7 @@ def trading_margin_evaluation(startDate: str, endDate: str, timeframe: str = '30
   estimated_margins = {}
 
   for symbol in SYMBOLS_FOR_EVALUATION:
-    asset = Equity_Manual_v1(symbol, timeframe)
+    asset = ASSETCLASS(symbol, timeframe)
     estimated_margins[symbol] = (asset.buy_power, 0, 0)
 
     ordered = set([])
@@ -94,15 +94,22 @@ def trading_margin_evaluation(startDate: str, endDate: str, timeframe: str = '30
     data = asset.data[asset.data['t'] >= startDate][asset.data['t'] <= endDate]['o']
 
     for i in data.index:
-      buySig, sellSig = getNewPosition_Manual_v1(asset, i)
+      buySig, sellSig = JUDGEFUNC(asset, i)
+      currentPrice = data[i]
       if buySig:
-        if makeOrders_Manual_v1(asset=asset, side='buy', price=data[i]):
+        isOrder, qty = ORDERFUNC(asset=asset, side='buy', currentPrice=currentPrice)
+        if isOrder:
+          asset.buy_power += qty * currentPrice
+          asset.current_position -= qty
           ordered.add(i)
-        predicted_points[symbol].append(('buy', i, data[i]))
+        predicted_points[symbol].append(('buy', i, currentPrice))
       elif sellSig:
-        if makeOrders_Manual_v1(asset=asset, side='sell', price=data[i]):
+        isOrder, qty = ORDERFUNC(asset=asset, side='sell', currentPrice=currentPrice)
+        if isOrder:
+          asset.buy_power -= qty * currentPrice
+          asset.current_position += qty
           ordered.add(i)
-        predicted_points[symbol].append(('sell', i, data[i]))
+        predicted_points[symbol].append(('sell', i, currentPrice))
 
     estimated_margins[symbol] = (
       asset.buy_power + asset.current_position * data[i] - estimated_margins[symbol][0],
