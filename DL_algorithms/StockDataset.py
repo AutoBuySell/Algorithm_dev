@@ -1,5 +1,5 @@
+import pandas as pd
 from torch.utils.data import Dataset
-import torch
 
 class SlidingWindowDataset(Dataset):
     def __init__(self, data_dir, window_size=512, step_size=20, prediction_length=100):
@@ -31,3 +31,5 @@ class SlidingWindowDataset(Dataset):
         data = self.processed_data[idx].to_numpy() # pandas.Series는 바로 tensor로 안되고 numpy를 거쳐야 변환됨.
         label = self.labels[idx]
         return torch.tensor(data, dtype=torch.float32), torch.tensor(label, dtype=torch.float32)
+        
+        
