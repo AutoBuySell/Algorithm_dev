@@ -1,10 +1,11 @@
 from lightning.pytorch.utilities.types import EVAL_DATALOADERS, TRAIN_DATALOADERS, STEP_OUTPUT
 from torch.utils.data import DataLoader, random_split
+import pytorch_lightning as pl
 
 class StockDataModule(pl.LightningDataModule):
-    def __init__(self, batch_size: int = 32, data_dir:str = '../data', window_size:int = 512, step_size:int=20, prediction_length:int = 100) -> None:
+    def __init__(self, data_path, batch_size: int = 32, window_size:int = 512, step_size:int=20, prediction_length:int = 100) -> None:
         super().__init__()
-        self.data_dir = data_dir
+        self.data_path = data_path
         self.batch_size = batch_size
         self.window_size = window_size
         self.step_size = step_size
@@ -17,7 +18,7 @@ class StockDataModule(pl.LightningDataModule):
             
             # make train dataset
             train_dataset = SlidingWindowDataset(
-                data_dir=self.data_dir,
+                data_path=self.data_path,
                 window_size= self.window_size,
                 step_size= self.step_size,
                 prediction_length= self.prediction_length

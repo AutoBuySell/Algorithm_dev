@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 class Stock_LSTM(pl.LightningModule):
     def __init__(self, input_dim, hidden_dim, output_dim, seq_length, LSTM_layers,dropout):
