@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
+from torch import nn
 
 class Stock_LSTM(pl.LightningModule):
     def __init__(self, input_dim, hidden_dim, output_dim, seq_length, LSTM_layers,dropout):
@@ -80,7 +81,7 @@ class Stock_LSTM(pl.LightningModule):
         self.log_dict(metrics, prog_bar=True)
 
     def predict_step(self, batch, batch_idx):
-        return torch.argmax(self.model(batch), dim=-1)
+        return self(batch)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)

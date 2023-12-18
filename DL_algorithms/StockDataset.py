@@ -1,5 +1,6 @@
 import pandas as pd
 from torch.utils.data import Dataset
+import torch
 
 class SlidingWindowDataset(Dataset):
     def __init__(self, data_path, window_size=512, step_size=20, prediction_length=100):
@@ -18,9 +19,14 @@ class SlidingWindowDataset(Dataset):
             end = start + self.window_size
             window_data = self.data[start:end]['o']
             label_data = self.data[end:end + self.prediction_length]['o'].mean()
-            
-            processed_data.append(window_data)
-            labels.append(label_data.mean())
+
+            # window_data의 마지막 데이터를 기준으로 스케일링
+            scaling_factor = window_data.iloc[-1]  # 마지막 가격을 스케일링 팩터로 사용
+            scaled_window_data = window_data / scaling_factor        
+            scaled_label_data = label_data / scaling_factor
+
+            processed_data.append(scaled_window_data)
+            labels.append(scaled_label_data)
 
         return processed_data, labels
 
