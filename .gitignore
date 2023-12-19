@@ -161,3 +161,9 @@ cython_debug/
 
 #MacOS files
 .DS_Store
+
+#lightning logs
+lightning_logs/
+
+#stock data set
+market_long_data/
