@@ -65,7 +65,7 @@ def trading_point_evaluation(startDate: str, endDate: str):
 
   return results
 
-def trading_margin_evaluation(startDate: str, endDate: str, initial_buy_power: float):
+def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial_buy_power: float):
   '''
   매수/매도 포인트 시각화
   visualize buying/selling points
@@ -74,51 +74,47 @@ def trading_margin_evaluation(startDate: str, endDate: str, initial_buy_power: f
   return: A dict of keys of symbols and values of (estimated margins, current_buy_power, current_position_value)
   '''
 
-  predicted_points = {}
-  estimated_margins = {}
+  predicted_points = []
+  estimated_margins = {
+    'symbol': symbol,
+    'startDate': startDate,
+    'endDate': endDate
+  }
 
-  for symbol in SYMBOLS_FOR_EVALUATION:
-    asset = ASSETCLASS(symbol)
-    asset.buy_power = initial_buy_power
+  asset = ASSETCLASS(symbol)
+  asset.account_info['buy_power'] = initial_buy_power
 
-    req_data_historical(
-      symbol=symbol,
-      timeframe=asset.timeframe,
-      startDate=startDate,
-      endDate=endDate
-    )
+  estimated_margins['margin'] = (asset.account_info['buy_power'], 0, 0)
 
-    estimated_margins[symbol] = (asset.buy_power, 0, 0)
+  ordered = set([])
 
-    ordered = set([])
-    predicted_points[symbol] = []
+  data = asset.data[asset.data['t'] >= startDate][asset.data['t'] <= endDate]['o']
 
-    data = asset.data[asset.data['t'] >= startDate][asset.data['t'] <= endDate]['o']
-
-    for i in data.index:
+  if len(data) > 2:
+    for i in data.index[1:]:
       buySig, sellSig = JUDGEFUNC(asset, i)
       currentPrice = data[i]
       if buySig:
         isOrder, qty = ORDERFUNC(asset=asset, side='buy', currentPrice=currentPrice)
         if isOrder:
-          asset.buy_power -= qty * currentPrice
+          asset.account_info['buy_power'] -= qty * currentPrice
           asset.current_position += qty
           ordered.add(i)
-        predicted_points[symbol].append(('buy', i, currentPrice))
+        predicted_points.append(('buy', i, currentPrice))
       elif sellSig:
         isOrder, qty = ORDERFUNC(asset=asset, side='sell', currentPrice=currentPrice)
         if isOrder:
-          asset.buy_power += qty * currentPrice
+          asset.account_info['buy_power'] += qty * currentPrice
           asset.current_position -= qty
           ordered.add(i)
-        predicted_points[symbol].append(('sell', i, currentPrice))
+        predicted_points.append(('sell', i, currentPrice))
 
-    estimated_margins[symbol] = (
-      asset.buy_power + asset.current_position * data[i] - estimated_margins[symbol][0],
-      asset.buy_power,
+    estimated_margins['margin'] = (
+      asset.account_info['buy_power'] + asset.current_position * data[i] - estimated_margins['margin'][0],
+      asset.account_info['buy_power'],
       asset.current_position * data[i]
     )
 
-    visualize_points(asset, predicted_points[symbol], ordered)
+    visualize_points(asset, predicted_points, ordered)
 
   return estimated_margins
