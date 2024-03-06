@@ -3,7 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 
-from apis.alpaca.infos import get_infos, get_current_positions, get_day_order_records
+from apis.alpaca.infos import get_infos, get_current_positions
 
 load_dotenv(verbose=True)
 
@@ -55,7 +55,7 @@ class Equity_Manual_v2():
         self.account_info = {}
 
     def __repr__(self) -> str:
-        return '{' + f'symbol: {self.symbol}, settings: {self.settings}' + '}'
+        return 'ASSET variable {' + f'symbol: {self.symbol}, settings: {self.settings}' + '}'
 
     def check_data(self) -> bool: # must required method
         '''

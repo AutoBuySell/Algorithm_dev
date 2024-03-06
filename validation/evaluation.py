@@ -1,6 +1,6 @@
-from manual_algorithms.dkqp_231016.assets import Equity_Manual_v1 as ASSETCLASS
-from manual_algorithms.dkqp_231016.judge import getNewPosition_Manual_v1 as JUDGEFUNC
-from manual_algorithms.dkqp_231016.order import makeOrders_Manual_v1 as ORDERFUNC
+from manual_algorithms.dkqp_231113.assets import Equity_Manual_v2 as ASSETCLASS
+from manual_algorithms.dkqp_231113.judge import getNewPosition_Manual_v2 as JUDGEFUNC
+from manual_algorithms.dkqp_231113.order import makeOrders_Manual_v2 as ORDERFUNC
 
 from apis.data import req_data_historical
 
@@ -82,6 +82,14 @@ def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial
   }
 
   asset = ASSETCLASS(symbol)
+
+  req_data_historical(
+      symbol=symbol,
+      timeframe=asset.timeframe,
+      startDate=startDate,
+      endDate=endDate
+    )
+
   asset.account_info['buy_power'] = initial_buy_power
 
   estimated_margins['margin'] = (asset.account_info['buy_power'], 0, 0)
@@ -92,17 +100,17 @@ def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial
 
   if len(data) > 2:
     for i in data.index[1:]:
-      buySig, sellSig = JUDGEFUNC(asset, i)
+      buySig, sellSig, confidence = JUDGEFUNC(asset, i)
       currentPrice = data[i]
       if buySig:
-        isOrder, qty = ORDERFUNC(asset=asset, side='buy', currentPrice=currentPrice)
+        isOrder, qty = ORDERFUNC(asset=asset, side='buy', confidence=confidence)
         if isOrder:
           asset.account_info['buy_power'] -= qty * currentPrice
           asset.current_position += qty
           ordered.add(i)
         predicted_points.append(('buy', i, currentPrice))
       elif sellSig:
-        isOrder, qty = ORDERFUNC(asset=asset, side='sell', currentPrice=currentPrice)
+        isOrder, qty = ORDERFUNC(asset=asset, side='sell', confidence=confidence)
         if isOrder:
           asset.account_info['buy_power'] += qty * currentPrice
           asset.current_position -= qty
