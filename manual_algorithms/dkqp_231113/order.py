@@ -14,7 +14,7 @@ def makeOrders_Manual_v2(asset: Equity_Manual_v2, side: str, confidence: float) 
 
         target_value = asset.settings['target_value']
         value_diff = asset.value_diff
-        buy_power = asset.account_info['buy_power']
+        buying_power = asset.account_info['buying_power']
         current_position = asset.current_position
         current_price = asset.data['o'].iloc[-1]
 
@@ -25,7 +25,7 @@ def makeOrders_Manual_v2(asset: Equity_Manual_v2, side: str, confidence: float) 
 
         elif side == 'buy':
             amount = pow(2, value_diff / target_value) * confidence * (target_value / 5)
-            amount = min(amount, buy_power)
+            amount = min(amount, buying_power)
             qty = amount // current_price
             is_order = True
 

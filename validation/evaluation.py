@@ -65,13 +65,13 @@ def trading_point_evaluation(startDate: str, endDate: str):
 
   return results
 
-def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial_buy_power: float):
+def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial_buying_power: float):
   '''
   매수/매도 포인트 시각화
   visualize buying/selling points
 
   종목별 예상 수익 반환 (최종 데이터 시점)
-  return: A dict of keys of symbols and values of (estimated margins, current_buy_power, current_position_value)
+  return: A dict of keys of symbols and values of (estimated margins, current_buying_power, current_position_value)
   '''
 
   predicted_points = []
@@ -90,9 +90,9 @@ def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial
       endDate=endDate
     )
 
-  asset.account_info['buy_power'] = initial_buy_power
+  asset.account_info['buying_power'] = initial_buying_power
 
-  estimated_margins['margin'] = (asset.account_info['buy_power'], 0, 0)
+  estimated_margins['margin'] = (asset.account_info['buying_power'], 0, 0)
 
   ordered = set([])
 
@@ -105,21 +105,21 @@ def trading_margin_evaluation(symbol: str, startDate: str, endDate: str, initial
       if buySig:
         isOrder, qty = ORDERFUNC(asset=asset, side='buy', confidence=confidence)
         if isOrder:
-          asset.account_info['buy_power'] -= qty * currentPrice
+          asset.account_info['buying_power'] -= qty * currentPrice
           asset.current_position += qty
           ordered.add(i)
         predicted_points.append(('buy', i, currentPrice))
       elif sellSig:
         isOrder, qty = ORDERFUNC(asset=asset, side='sell', confidence=confidence)
         if isOrder:
-          asset.account_info['buy_power'] += qty * currentPrice
+          asset.account_info['buying_power'] += qty * currentPrice
           asset.current_position -= qty
           ordered.add(i)
         predicted_points.append(('sell', i, currentPrice))
 
     estimated_margins['margin'] = (
-      asset.account_info['buy_power'] + asset.current_position * data[i] - estimated_margins['margin'][0],
-      asset.account_info['buy_power'],
+      asset.account_info['buying_power'] + asset.current_position * data[i] - estimated_margins['margin'][0],
+      asset.account_info['buying_power'],
       asset.current_position * data[i]
     )
 
