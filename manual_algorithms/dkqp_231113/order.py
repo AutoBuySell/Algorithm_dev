@@ -2,7 +2,7 @@ import traceback
 
 from .assets import Equity_Manual_v2
 
-def makeOrders_Manual_v2(asset: Equity_Manual_v2, side: str, confidence: float) -> tuple[bool | int]:
+def makeOrders_Manual_v2(asset: Equity_Manual_v2, side: str, confidence: float) -> tuple:
     '''
     orders: (list of symbols to order, list of 'buy' or 'sell' orders per asset)
     obj_assets: dict of asset objects
@@ -20,7 +20,7 @@ def makeOrders_Manual_v2(asset: Equity_Manual_v2, side: str, confidence: float) 
 
         if side == 'sell' and current_position > 0:
             amount = pow(2, - value_diff / target_value) * confidence * (target_value / 5)
-            qty = amount // current_price
+            qty = min(amount // current_price, current_position)
             is_order = True
 
         elif side == 'buy':
